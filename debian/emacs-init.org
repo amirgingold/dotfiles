@@ -1,0 +1,137 @@
+#+STARTUP: overview
+#+PROPERTY: header-args :tangle "/home/me/.emacs.d/init.el"
+
+* Enable lexical-binding
+#+begin_src elisp 
+;; -*- lexical-binding: t; -*-
+#+end_src
+
+* Startup performance
+Speed up init.
+Temporarily reduce garbage collection during startup. Inspect `gcs-done'.
+
+#+begin_src elisp
+(defun my/reset-gc-cons-threshold ()
+  (setq gc-cons-threshold (car (get 'gc-cons-threshold 'standard-value))))
+(setq gc-cons-threshold (* 64 1024 1024))
+(add-hook 'after-init-hook 'my/reset-gc-cons-threshold)
+#+end_src
+
+* straight.el & setup.el
+** straight.el installation
+#+begin_src elisp
+  (defvar bootstrap-version)
+    (let ((bootstrap-file
+	   (expand-file-name
+	    "straight/repos/straight.el/bootstrap.el"
+	    (or (bound-and-true-p straight-base-dir)
+		user-emacs-directory)))
+	  (bootstrap-version 7))
+      (unless (file-exists-p bootstrap-file)
+	(with-current-buffer
+	    (url-retrieve-synchronously
+	     "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+	     'silent 'inhibit-cookies)
+	  (goto-char (point-max))
+	  (eval-print-last-sexp)))
+      (load bootstrap-file nil 'nomessage))
+#+end_src
+
+** setup.el installation
+#+begin_src elisp
+  (straight-use-package '(setup :type git :host nil :repo "https://git.sr.ht/~pkal/setup"))
+  (require 'setup)
+#+end_src
+
+** straight.el configuration
+Taken from https://www.emacswiki.org/emacs/SetupEl
+#+begin_src elisp
+  (setup-define :straight
+    (lambda (recipe)
+      `(unless (straight-use-package ',recipe)
+	 ,(setup-quit)))
+    :documentation
+    "Install RECIPE with `straight-use-package'.
+  This macro can be used as HEAD, and will replace itself with the
+  first RECIPE's package."
+    :repeatable t
+    :shorthand (lambda (sexp)
+		 (let ((recipe (cadr sexp)))
+		   (if (consp recipe)
+		       (car recipe)
+		     recipe))))
+
+#+end_src
+
+* General
+** No backup files
+#+begin_src elisp
+(setq make-backup-files nil)  
+#+end_src
+
+** UTF-8 as default encoding
+#+begin_src elisp
+(set-language-environment 'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-keyboard-coding-system 'utf-8-unix)
+#+end_src
+
+** Better buffers listing
+#+begin_src elisp
+(global-set-key [remap list-buffers] 'ibuffer)
+#+end_src
+
+** Easier window switch
+#+begin_src elisp
+(global-set-key (kbd "M-o") 'other-window)  
+#+end_src
+
+** Emacs source code
+#+begin_src elisp
+(setq find-function-C-source-directory (concat "/home/me/emacs-" emacs-version "/src/"))
+#+end_src
+** Makaf character
+#+begin_src elisp
+(defun makaf ()
+  (interactive)
+  (insert-char ?\u05be))
+(keymap-global-set "s--" 'makaf)
+#+end_src
+
+** Switch language on the next line (not working)
+#+begin_src elisp
+(setq bidi-paragraph-separate-re "^"
+      bidi-paragraph-start-re "^")  
+#+end_src
+
+* Packages
+** Theme
+#+begin_src elisp
+(setup (:straight zenburn-theme)
+  (load-theme 'zenburn t))
+#+end_src
+** Completion
+*** Tempel
+#+begin_src elisp
+     (setup (:straight tempel)
+       (:bind
+	"M-+" #'tempel-complete
+	"M-*" #'tempel-insert)
+       (defun tempel-setup-capf ()
+       ;; Add the Tempel Capf to `completion-at-point-functions'.
+       ;; `tempel-expand' only triggers on exact matches. Alternatively use
+       ;; `tempel-complete' if you want to see all matches, but then you
+       ;; should also configure `tempel-trigger-prefix', such that Tempel
+       ;; does not trigger too often when you don't expect it. NOTE: We add
+       ;; `tempel-expand' *before* the main programming mode Capf, such
+       ;; that it will be tried first.
+       (setq-local completion-at-point-functions
+		   (cons #'tempel-expand
+			 completion-at-point-functions)))
+       (:with-mode conf-mode
+	 (:hook tempel-setup-capf))
+
+       )
+     (setup (:straight corfu)
+       (global-corfu-mode))
+#+end_src
