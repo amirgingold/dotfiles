@@ -116,6 +116,8 @@ Taken from https://www.emacswiki.org/emacs/SetupEl
 (setup (:straight zenburn-theme)
   (load-theme 'zenburn t))
 #+end_src
+
+#+BEGIN_COMMENT
 ** Completion
 *** Tempel
 #+begin_src elisp
@@ -141,3 +143,4 @@ Taken from https://www.emacswiki.org/emacs/SetupEl
      (setup (:straight corfu)
        (global-corfu-mode))
 #+end_src
+#+END_COMMENT
