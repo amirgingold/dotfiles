@@ -64,6 +64,12 @@ Taken from https://www.emacswiki.org/emacs/SetupEl
 #+end_src
 
 * General
+
+** Maximize initial frame
+#+begin_src elisp
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+#+end_src
+
 ** No backup files
 #+begin_src elisp
 (setq make-backup-files nil)  
